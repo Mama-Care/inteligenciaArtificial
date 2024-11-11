@@ -89,34 +89,18 @@ def get_context(pergunta):
     # Retorna o conteúdo do primeiro resultado
     return results[0].page_content if results else ""
 
-st.title("Chat Amamentação")
+def process_question(question):
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-if pergunta := st.chat_input("Faça uma pergunta sobre amamentação para o assistente"):
-    with st.chat_message("user"):
-        st.markdown(pergunta)
-        st.session_state.messages.append({"role": "user", "content": pergunta})
-
-    distance = calculation_distance(pergunta)
+    distance = calculation_distance(question)
+    resposta = ""
 
     if distance > 1.05:
-        resposta = "Não tenho conhecimento para responder a essa pergunta"
+        resposta = "Parece que essa pergunta está fora do meu tema principal, que é amamentação. Se precisar de informações ou apoio sobre amamentação, estou aqui para ajudar no que for possível!"
 
-        with st.chat_message("assistant"):
-
-            st.markdown(resposta)
-            st.session_state.messages.append({"role": "assistant", "content": str(resposta)})
-    
     else:
 
         # Recupera o contexto mais relevante
-        context = get_context(pergunta)
+        context = get_context(question)
 
         prompt = getBetterPromptByDistance(distance)
 
@@ -130,9 +114,6 @@ if pergunta := st.chat_input("Faça uma pergunta sobre amamentação para o assi
         )
 
         # Passa 'context' e 'question' para o invoke
-        resposta = rag_chain.invoke({"context": context, "question": pergunta})
+        resposta = rag_chain.invoke({"context": context, "question": question})
 
-        with st.chat_message("assistant"):
-
-            st.markdown(resposta)
-            st.session_state.messages.append({"role": "assistant", "content": str(resposta)})
+    return resposta
