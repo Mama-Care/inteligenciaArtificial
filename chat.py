@@ -39,7 +39,7 @@ def getBetterPromptByDistance(distance):
     
     prompt = ""
 
-    if 0.9 <= distance <= 1.05:
+    if 0.8 <= distance <= 1:
 
         prompt = PromptTemplate(
             input_variables=["context","question"],
@@ -94,7 +94,7 @@ def process_question(question):
     distance = calculation_distance(question)
     resposta = ""
 
-    if distance > 1.05:
+    if distance > 1:
         resposta = "Parece que essa pergunta está fora do meu tema principal, que é amamentação. Se precisar de informações ou apoio sobre amamentação, estou aqui para ajudar no que for possível!"
 
     else:
@@ -115,5 +115,9 @@ def process_question(question):
 
         # Passa 'context' e 'question' para o invoke
         resposta = rag_chain.invoke({"context": context, "question": question})
+
+        if distance > 0.8:
+            # Passa 'context' e 'question' para o invoke
+            resposta += "\n\nA resposta fornecida é baseada nas informações disponíveis e pode não estar 100% precisa. Recomendo confirmar com profissionais de saúde para informações totalmente confiáveis."
 
     return resposta
