@@ -35,76 +35,50 @@ llm = Ollama(
     temperature=0
 )
 
-def getBetterPromptByDistance(distance):
-    
-    prompt = ""
+def get_contexts(pergunta):
+    results = vector_store.similarity_search_with_score(pergunta)
 
-    if 0.8 <= distance <= 1:
+    # Criar um novo array com os page_content e score menor 1
+    relevantDocuments = [(document.page_content, score) for document, score in results if score < 1]
 
-        prompt = PromptTemplate(
-            input_variables=["context","question"],
-            template = """
-            # INSTRUÇÃO
-            Você é um atendente e deve esclarecer as dúvidas enviadas pelo usuário.
-            Junto com sua resposta deixe claro que ela não é uma resposta que pode conter inconsistências
+    # Exibir o novo array
+    # if len(relevantDocuments) == 0:
+    #     print("relevantDocuments está vazio")
+    # else:
+    #     for i, (page_content, score) in enumerate(relevantDocuments, start=1):
+    #         print(f"Item {i}:")
+    #         print(f"  Page Content: {page_content}")
+    #         print(f"  Score: {score}")
 
-            # CONTEXTO PARA RESPOSTAS
-            {context}
+    print(f"Tamanho relevantDocuments {len(relevantDocuments)}")
 
-            # PERGUNTA
-            Pergunta: {question}
-            """
-        )
-    
-    else:
-
-        prompt = PromptTemplate(
-            input_variables=["context","question"],
-            template = """
-            # INSTRUÇÃO
-            Você é um atendente e deve esclarecer as dúvidas enviadas pelo usuário.
-
-            # CONTEXTO PARA RESPOSTAS
-            {context}
-
-            # PERGUNTA
-            Pergunta: {question}
-            """
-        )
-
-    return prompt
-
-#retriever = vector_store.as_retriever()
-
-def calculation_distance(pergunta):
-    results = vector_store.similarity_search_with_score(pergunta, k=1)
-    distance = 0
-    for content in results:
-        distance = content[-1]
-    return distance
-
-def get_context(pergunta):
-    # Usa o similarity_search para recuperar o contexto mais relevante
-    results = vector_store.similarity_search(pergunta, k=1)
-    # Retorna o conteúdo do primeiro resultado
-    return results[0].page_content if results else ""
+    return relevantDocuments
 
 def process_question(question):
 
-    distance = calculation_distance(question)
+    contexts = get_contexts(question)
+    print(contexts)
+
     resposta = ""
 
-    if distance > 1:
+    if len(contexts) == 0:
         resposta = "Parece que essa pergunta está fora do meu tema principal, que é amamentação. Se precisar de informações ou apoio sobre amamentação, estou aqui para ajudar no que for possível!"
 
     else:
 
-        # Recupera o contexto mais relevante
-        context = get_context(question)
+        prompt = PromptTemplate(
+            input_variables=["context","question"],
+            template = """
+            # INSTRUÇÃO
+            Você é um atendente e deve esclarecer as dúvidas enviadas pelo usuário.
 
-        prompt = getBetterPromptByDistance(distance)
+            # CONTEXTO PARA RESPOSTAS
+            {context}
 
-        print(distance)
+            # PERGUNTA
+            Pergunta: {question}
+            """
+        )
 
         rag_chain = (
             {"context": RunnablePassthrough(), "question": RunnablePassthrough(), "distance": RunnablePassthrough()} 
@@ -113,11 +87,10 @@ def process_question(question):
             | StrOutputParser()
         )
 
-        # Passa 'context' e 'question' para o invoke
-        resposta = rag_chain.invoke({"context": context, "question": question})
+        #Passa 'context' e 'question' para o invoke
+        resposta = rag_chain.invoke({"context": contexts, "question": question})
 
-        if distance > 0.8:
-            # Passa 'context' e 'question' para o invoke
+        if len(contexts) < 4:
             resposta += "\n\nA resposta fornecida é baseada nas informações disponíveis e pode não estar 100% precisa. Recomendo confirmar com profissionais de saúde para informações totalmente confiáveis."
 
     return resposta
