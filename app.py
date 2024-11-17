@@ -7,6 +7,7 @@ app = Flask(__name__)
 def answer_question():
     # Recebe a pergunta do JSON enviado no POST
     data = request.get_json()
+    print(f"BACKEND: { data }")
     question = data.get('question', '')
     
     # Aqui, você processa a pergunta
