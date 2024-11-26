@@ -13,7 +13,7 @@ def initialize_milvus():
 
     embeddings = HuggingFaceEmbeddings(model_name='all-MiniLM-L6-v2')
 
-    loader = PyPDFLoader('./data/dados.pdf')
+    #loader = PyPDFLoader('./data/dados.pdf')
 
     # Configurando o TextSplitter
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=300)
