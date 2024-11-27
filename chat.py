@@ -68,16 +68,17 @@ def process_question(question):
 
         resposta = rag_chain.invoke({"context": contexts, "question": question})
 
-        countContextsBiggerThan08 = 0
+        contextGreaterThan08 = False
 
         for context, score in contexts: 
             print(f"Score: {score}")
             if score > 0.8:
-                countContextsBiggerThan08 += 1
+                contextGreaterThan08 = True
+                break
 
-        print(countContextsBiggerThan08)
+        print(contextGreaterThan08)
             
-        if countContextsBiggerThan08 > 0:
-            resposta += "\n\nA resposta fornecida é baseada nas informações disponíveis e pode não estar 100% precisa. Recomendo confirmar com profissionais de saúde para informações totalmente confiáveis."
+        if contextGreaterThan08 == True:
+            resposta = "\n\n**AVISO** A resposta fornecida é baseada nas informações disponíveis e pode não estar 100% precisa. Recomendo confirmar com profissionais de saúde para informações totalmente confiáveis." + resposta
 
     return resposta
