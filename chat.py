@@ -31,7 +31,7 @@ def get_contexts(pergunta):
 def process_question(question):
 
     contexts = get_contexts(question)
-    print(contexts)
+    #print(contexts)
 
     resposta = ""
 
@@ -42,9 +42,13 @@ def process_question(question):
 
         prompt = PromptTemplate(
             input_variables=["context","question"],
-            template = """
+            template="""
             # INSTRUÇÃO
-            Você é um atendente e deve esclarecer as dúvidas enviadas pelo usuário.
+            Você é um especialista em amamentação, e deve responder perguntas sobre o processo de amamentação de forma clara e detalhada. Para cada pergunta, siga a seguinte sequência de pensamento para organizar sua resposta:
+            1. Explique brevemente o conceito ou termo relacionado à pergunta.
+            2. Se houver mais de uma opção ou recomendação, explique cada uma.
+            3. Se possível, forneça exemplos práticos ou dicas que ajudem a esclarecer a questão.
+            4. Termine com uma dica de apoio ou encorajamento para mães que amamentam.
 
             # CONTEXTO PARA RESPOSTAS
             {context}
@@ -52,6 +56,7 @@ def process_question(question):
             # PERGUNTA
             Pergunta: {question}
             """
+
         )
 
         rag_chain = (
@@ -63,7 +68,16 @@ def process_question(question):
 
         resposta = rag_chain.invoke({"context": contexts, "question": question})
 
-        if len(contexts) < 4:
+        countContextsBiggerThan08 = 0
+
+        for context, score in contexts: 
+            print(f"Score: {score}")
+            if score > 0.8:
+                countContextsBiggerThan08 += 1
+
+        print(countContextsBiggerThan08)
+            
+        if countContextsBiggerThan08 > 0:
             resposta += "\n\nA resposta fornecida é baseada nas informações disponíveis e pode não estar 100% precisa. Recomendo confirmar com profissionais de saúde para informações totalmente confiáveis."
 
     return resposta
