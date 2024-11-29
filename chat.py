@@ -79,6 +79,6 @@ def process_question(question):
         print(contextGreaterThan08)
             
         if contextGreaterThan08 == True:
-            resposta = "\n\n**AVISO** A resposta fornecida é baseada nas informações disponíveis e pode não estar 100% precisa. Recomendo confirmar com profissionais de saúde para informações totalmente confiáveis." + resposta
+            resposta = "\n\n**AVISO** A resposta fornecida é baseada nas informações disponíveis e pode não estar 100% precisa. Recomendo confirmar com profissionais de saúde para informações totalmente confiáveis.\n\n" + resposta
 
     return resposta
